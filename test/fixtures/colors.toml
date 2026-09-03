@@ -1,0 +1,15 @@
+mode = "dark"
+
+accent = "#7aa2f7"
+selection = "#292e42"
+muted = "#414868"
+
+background = "#1a1b26"
+foreground = "#a9b1d6"
+
+red = "#f7768e"
+yellow = "#e0af68"
+green = "#9ece6a"
+blue = "#7aa2f7"
+
+hyprland_active_border = "rgba(33ccffee) rgba(00ff99ee) 45deg"

@@ -28,6 +28,14 @@ otp_session_begin() {
   sleep 0.5
   local ws_mon; ws_mon=$(hypr_json activeworkspace | jq -r '.monitor')
   [[ $ws_mon == "$OTP_OUTPUT" ]] || die "workspace $OTP_WS ended up on $ws_mon instead of $OTP_OUTPUT"
+  # The shell puts its wallpaper and bar on the new screen a moment later;
+  # give it time to do so (and a little more to actually paint) before the
+  # first capture, or the desktop scene is a black frame.
+  hypr_wait_layer omarchy-background "$OTP_OUTPUT" 8 || warn "no wallpaper layer on $OTP_OUTPUT after 8 s"
+  hypr_wait_layer omarchy-bar "$OTP_OUTPUT" 8 || warn "no bar on $OTP_OUTPUT after 8 s"
+  # Nothing from before may be on screen: no toast from an earlier run.
+  omarchy-shell -q notifications dismissAll >/dev/null 2>&1 || true
+  sleep 1
   info "virtual screen $OTP_OUTPUT (${OTP_WIDTH}x${OTP_HEIGHT} @ ${OTP_SCALE}x), workspace $OTP_WS"
 }
 
@@ -84,17 +92,64 @@ otp_launch() {
   hypr_wait_window "$class" 25
 }
 
+# The Omarchy shell stops painting on new outputs after a couple of dozen
+# headless outputs have come and gone: its bar and background layers are
+# there, but stay black, and windows tile over the space the bar should take.
+# Restarting the shell fixes it. The batch does that before every theme by
+# default (OTP_SHELL_RESTART_EVERY), so every theme starts from a fresh
+# shell, and any capture that still comes out as one flat colour triggers a
+# restart and a second try.
+
+# otp_shell_restart [MONITOR]  -- restart the shell, wait for its bar (on
+# MONITOR when given, anywhere otherwise), then let things settle.
+otp_shell_restart() {
+  local mon="${1:-}" i q
+  log "Restarting the Omarchy shell"
+  omarchy-restart-shell >/dev/null 2>&1 || warn "omarchy-restart-shell failed"
+  if [[ -n $mon ]]; then q='.[$m].levels[]?[]? | select(.namespace == "omarchy-bar")'; else q='.[] | .levels[]?[]? | select(.namespace == "omarchy-bar")'; fi
+  for i in $(seq 1 150); do
+    hypr_json layers | jq -e --arg m "$mon" "$q" >/dev/null 2>&1 && break
+    sleep 0.1
+  done
+  sleep "$OTP_THEME_SETTLE"
+  OTP_SHELL_RESTARTED=1
+}
+
+# otp_frame_is_flat PNG  -- true when the picture is a single colour
+otp_frame_is_flat() {
+  local sd; sd=$(magick "$1" -scale 5% -format '%[fx:standard_deviation]' info: 2>/dev/null || echo 1)
+  awk -v sd="$sd" 'BEGIN { exit !(sd < 0.003) }'
+}
+
 # otp_capture SCENE [MONITOR]
 otp_capture() {
   local scene="$1" mon="${2:-$OTP_OUTPUT}" png
   png="$OTP_THEME_OUT/$scene.png"
   grim -o "$mon" "$png" || { warn "grim failed for $scene"; return 1; }
+  if otp_frame_is_flat "$png"; then
+    if [[ ${OTP_SHELL_RESTARTED:-0} == 1 ]]; then
+      warn "$scene is a single flat colour even after a shell restart"
+      otp_note_flat "$scene"
+    else
+      warn "$scene came out as one flat colour; restarting the shell and trying again"
+      otp_shell_restart "$mon"
+      grim -o "$mon" "$png" || { warn "grim failed for $scene"; return 1; }
+      if otp_frame_is_flat "$png"; then warn "$scene is still a single flat colour"; otp_note_flat "$scene"; fi
+    fi
+  fi
   render_scene_outputs "$OTP_THEME_OUT" "$scene"
   OTP_SCENES_JSON=$(jq --arg s "$scene" --argjson v "$(render_scene_json "$OTP_THEME_OUT" "$scene")" '.[$s] = $v' <<<"$OTP_SCENES_JSON")
   info "captured $scene"
 }
 
 otp_note() { OTP_NOTES_JSON=$(jq --arg k "$1" --arg v "$2" '.[$k] = $v' <<<"$OTP_NOTES_JSON"); }
+
+# Record a scene whose picture is one flat colour, so meta.json says which
+# pictures of a theme are not to be trusted (notes.flat_scenes).
+otp_note_flat() {
+  local cur; cur=$(jq -r '.flat_scenes // ""' <<<"$OTP_NOTES_JSON")
+  otp_note flat_scenes "${cur:+$cur }$1"
+}
 
 # --- Scenes ---
 scene_desktop() {
@@ -185,11 +240,15 @@ scene_apps() {
 }
 
 scene_notification() {
-  omarchy-notification-send -u normal -t 10000 "Omarchy Theme Photograph" "This is what a notification looks like" >/dev/null 2>&1 \
+  local summary="Omarchy Theme Photograph"
+  omarchy-notification-send -u normal -t 10000 "$summary" "This is what a notification looks like" >/dev/null 2>&1 \
     || { warn "could not send a notification"; return 1; }
   otp_settle 1.5
   otp_capture notification
-  omarchy-notification-dismiss >/dev/null 2>&1 || true
+  # Dismiss it by its summary (the dismiss command needs one). Live toasts
+  # survive a shell restart in Omarchy 4, so one left behind would turn up
+  # in the next theme's desktop picture.
+  omarchy-notification-dismiss "$summary" >/dev/null 2>&1 || true
 }
 
 # The lock preview is a single layer the shell puts on the first screen, so it
@@ -225,6 +284,9 @@ otp_shoot_current() {
   mkdir -p "$OTP_THEME_OUT"
   OTP_SCENES_JSON='{}'
   OTP_NOTES_JSON='{}'
+  OTP_WALLPAPERS_JSON='[]'
+  OTP_SOURCE_JSON=$(theme_source_json "$slug")
+  OTP_SHELL_RESTARTED=0
   log "Photographing '$name' ($slug) -> $OTP_THEME_OUT"
 
   otp_session_begin
@@ -238,6 +300,10 @@ otp_shoot_current() {
     otp_scene_cleanup
   done
   otp_session_end
-  theme_write_meta "$OTP_THEME_OUT" "$slug" "$name" "$OTP_SCENES_JSON" "$OTP_NOTES_JSON"
+  if [[ $OTP_WALLPAPERS == 1 ]]; then
+    log "Wallpapers"
+    render_wallpapers "$slug" || warn "could not list the wallpapers"
+  fi
+  theme_write_meta "$OTP_THEME_OUT" "$slug" "$name" "$OTP_SCENES_JSON" "$OTP_NOTES_JSON" "$OTP_WALLPAPERS_JSON" "$OTP_SOURCE_JSON"
   info "wrote $OTP_THEME_OUT/meta.json"
 }

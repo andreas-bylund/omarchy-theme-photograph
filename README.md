@@ -13,6 +13,8 @@ The output is a folder per theme with WebP images, a palette sheet and a
 `meta.json`, plus an `index.json` across all themes. That is everything a
 static website or a CDN bucket needs.
 
+![The same scene in four themes: Tokyo Night, Rose Pine, Osaka Jade and Matte Black](docs/readme/four-themes.webp)
+
 ## What gets photographed
 
 | Scene          | What you see                                                     |
@@ -34,6 +36,8 @@ static website or a CDN bucket needs.
 Every scene uses the same content for every theme (the sample files live in
 `assets/`), the same 1920x1080 logical resolution and the same timing.
 
+![Every scene of the Catppuccin theme](docs/readme/scenes.webp)
+
 ## Requirements
 
 - Omarchy 4 (Hyprland with the Lua API, the Quickshell-based shell)
@@ -45,6 +49,18 @@ Check with:
 ```bash
 bin/omarchy-theme-photograph doctor
 ```
+
+## Install
+
+```bash
+git clone https://github.com/andreas-bylund/omarchy-theme-photograph ~/.local/share/omarchy-theme-photograph
+~/.local/share/omarchy-theme-photograph/install.sh
+```
+
+This puts a symlink in `~/.local/bin`, which Omarchy already has on the
+`PATH`, and runs `doctor`. Updating is a `git pull` in that folder;
+`install.sh --uninstall` removes the link. Running `bin/omarchy-theme-photograph`
+straight from a clone works too, which is what the examples below do.
 
 ## Usage
 
@@ -83,6 +99,19 @@ Rebuild the index after manual changes:
 bin/omarchy-theme-photograph index --out ./out
 ```
 
+Check a finished batch for pictures that cannot be trusted, then photograph
+those themes again:
+
+```bash
+bin/omarchy-theme-photograph qa --out ./out
+bin/omarchy-theme-photograph batch --only artemis,dracula --remove-after
+```
+
+`qa` flags a theme when its menu, launcher, lock or notification picture is
+the same as its desktop picture (the popup never appeared) or when a picture
+is one flat colour (nothing was painted). Both happen when the Omarchy shell
+is in a bad state, see below.
+
 Run `bin/omarchy-theme-photograph --help` for all options. Every option is
 also an environment variable (`OTP_OUT`, `OTP_SCENES`, `OTP_WIDTH`, ...).
 
@@ -95,10 +124,15 @@ out/
     ├── meta.json              # name, slug, repo, mode, colours, versions, scene files
     ├── palette.json           # the colours from colors.toml
     ├── hero.webp              # 1920 px wide
+    ├── hero.card.webp         # 1280 px wide
     ├── hero.thumb.webp        # 640 px wide
     ├── hero.png               # only with --keep-png (3840x2160)
     ├── desktop.webp ...
-    └── palette.webp
+    ├── palette.webp
+    └── wallpapers/            # previews of the wallpapers that ship with the theme
+        ├── 1-city-view.card.webp
+        ├── 1-city-view.thumb.webp
+        └── 1-city-view.png    # the original, only with --keep-wallpapers
 ```
 
 `meta.json` looks like this:
@@ -112,14 +146,43 @@ out/
   "mode": "dark",
   "colors": { "background": "#1a1b26", "accent": "#7aa2f7", "...": "..." },
   "background": "1-scenery-pink-lakeside-sunset-lake-landscape-scenic-panorama-7680x3215-144.png",
+  "source": { "repo": "https://github.com/basecamp/omarchy", "ref": "v4.0.2", "path": "themes/tokyo-night" },
   "omarchy_version": "4.0.2-1",
   "hyprland_version": "v0.56.2",
   "captured_at": "2026-09-03T12:00:00Z",
   "resolution": { "width": 1920, "height": 1080, "scale": 2 },
   "scenes": { "hero": { "full": "hero.webp", "thumb": "hero.thumb.webp", "width": 1920, "height": 1080 } },
+  "wallpapers": [
+    {
+      "file": "1-scenery-pink-lakeside-sunset-lake-landscape-scenic-panorama-7680x3215-144.png",
+      "title": "scenery pink lakeside sunset lake landscape scenic panorama 7680x3215 144",
+      "format": "png", "width": 7680, "height": 3215, "bytes": 9123456, "sha256": "…",
+      "thumb": "wallpapers/1-scenery-….thumb.webp", "card": "wallpapers/1-scenery-….card.webp",
+      "original": null,
+      "url": "https://raw.githubusercontent.com/basecamp/omarchy/v4.0.2/themes/tokyo-night/backgrounds/1-scenery-….png",
+      "page": "https://github.com/basecamp/omarchy/blob/v4.0.2/themes/tokyo-night/backgrounds/1-scenery-….png",
+      "current": true
+    }
+  ],
   "notes": {}
 }
 ```
+
+## Wallpapers
+
+Every theme ships its wallpapers in a `backgrounds/` folder, and they are a
+large part of what makes a theme. The tool lists them in `meta.json` and
+writes a card (1280 px) and a thumbnail (640 px) WebP of each one under
+`wallpapers/`. `current` marks the one that was on screen in the pictures.
+
+The originals are not copied by default. Instead `url` and `page` point at
+the exact file in the theme's repository at the commit that was
+photographed (Omarchy's release tag for stock themes), so a website can
+offer the untouched original without redistributing it. Use
+`--keep-wallpapers` to copy the originals into `wallpapers/` as well; they
+are then listed in `original` and uploaded by `scripts/upload-r2.sh`. Keep
+in mind that many community themes use wallpapers whose licence is unknown.
+`--no-wallpapers` skips all of this.
 
 ## The theme list
 
@@ -129,7 +192,12 @@ machine it was generated on. Regenerate it with:
 
 ```bash
 scripts/fetch-theme-list.py
+scripts/fetch-theme-list.py --registry   # also the Omarchy theme registry, 300+ themes
 ```
+
+The [Omarchy theme registry](https://github.com/andreas-bylund/omarchy-theme-registry)
+is a community index published as one JSON feed; `--registry` merges it in,
+keeping the first entry when a theme appears in both lists.
 
 Each entry has the display `name`, the site `slug`, the git `repo`, and
 `install_name`, which is the directory name Omarchy gives the theme when it
@@ -156,6 +224,11 @@ Things worth knowing:
 - Switching themes rotates the wallpaper the way `omarchy theme set` always
   does, so after a batch your wallpaper may be a different one from the same
   theme.
+- The Omarchy shell stops painting on new virtual screens after a couple of
+  dozen of them have come and gone: bar and wallpaper turn black. A batch
+  therefore restarts the shell before every theme (`OTP_SHELL_RESTART_EVERY`,
+  0 turns it off), and any picture that comes out as one flat colour makes
+  the tool restart the shell and take it again.
 
 ## Running in a VM over SSH
 
@@ -168,6 +241,15 @@ ssh omarchy-vm '~/omarchy-theme-photograph/scripts/run-in-session.sh \
 rsync -a omarchy-vm:out/ ./out/
 ```
 
+`vm/vm.sh` does all of that for a QEMU/KVM machine on the host: install
+Omarchy from the ISO, copy the tool in, run it, pull the pictures back.
+
+```bash
+vm/vm.sh install                 # once
+vm/vm.sh setup                   # once, after enabling sshd in the VM
+vm/vm.sh run batch --stock && vm/vm.sh pull
+```
+
 ## Publishing to Cloudflare R2
 
 ```bash
@@ -177,6 +259,22 @@ scripts/upload-r2.sh ./out r2:omarchy-themes/v1
 The script uses `rclone`, skips PNGs, gives images a one-year cache lifetime
 and `index.json` a five-minute one. Point a website at
 `https://<your-r2-domain>/v1/index.json` and render the gallery from that.
+
+## Keeping a gallery up to date
+
+Once the first full batch is done, new themes are an incremental job:
+
+```bash
+scripts/fetch-theme-list.py --registry            # 1. refresh the list
+vm/vm.sh run batch --skip-existing && vm/vm.sh pull   # 2. photograph only the new ones
+scripts/upload-r2.sh ./out r2:omarchy-themes/v1   # 3. upload what changed
+```
+
+`--skip-existing` skips every theme that already has a `meta.json` in the
+output folder; the batch rebuilds `index.json` when it finishes. To photograph
+a changed theme again, delete its folder first or run `batch --only <slug>`.
+To drop a theme, delete its folder and run `bin/omarchy-theme-photograph index`.
+Anything built from `index.json` then picks the changes up at its next build.
 
 ## Photographing your own theme
 
@@ -204,6 +302,28 @@ ships with.
 5. `grim -o <output>` captures the frame; ImageMagick writes the WebP files.
 6. Everything is closed, the virtual screen is removed and your focus,
    animation and cursor settings are put back.
+
+## Security and privacy
+
+- The tool makes no network requests of its own and sends nothing anywhere.
+  The pictures land in a folder on your disk. The only network activity is
+  `scripts/fetch-theme-list.py`, which downloads the theme lists you ask for,
+  and `batch`, which runs `omarchy theme install` for each community theme.
+- `batch` therefore clones repositories written by strangers onto the
+  machine it runs on. Omarchy refuses to load code from an installed theme
+  (Lua, terminal configs, `vscode.json`), but the files are still on your disk.
+  Run batches in the VM (`vm/`), not on the desktop you work on.
+- `shoot` on your own desktop switches your theme, opens windows on a virtual
+  screen and shows the lock screen preview for a couple of seconds. It puts
+  your theme, focus, animation and cursor settings back when it is done.
+- Pictures of your own desktop include whatever your bar, plugins and file
+  manager show. Check them before publishing.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add a scene, run the tests
+and try changes without disturbing your desktop. Bug reports are most useful
+with the output of `omarchy-theme-photograph doctor`.
 
 ## License
 

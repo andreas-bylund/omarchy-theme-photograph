@@ -11,10 +11,15 @@
 : "${OTP_OUT:=$PWD/out}"        # output directory
 : "${OTP_KEEP_PNG:=0}"          # keep the lossless PNG next to the WebP files
 : "${OTP_FULL_WIDTH:=1920}"     # width of the full-size WebP
+: "${OTP_CARD_WIDTH:=1280}"     # width of the medium WebP (gallery cards on HiDPI screens)
 : "${OTP_THUMB_WIDTH:=640}"     # width of the thumbnail WebP
 : "${OTP_WEBP_QUALITY:=85}"
 : "${OTP_THEME_SETTLE:=4}"      # seconds to let Omarchy re-tint apps after a theme switch
+: "${OTP_SHELL_RESTART_EVERY:=1}"   # in a batch, restart the Omarchy shell before every Nth theme (0 = never)
 : "${OTP_FILES_DIR:=$HOME}"     # folder shown in the file manager scenes
+: "${OTP_WALLPAPERS:=1}"        # list the theme's wallpapers and make previews of them
+: "${OTP_KEEP_WALLPAPERS:=0}"   # also copy the original wallpaper files into the output
+: "${OTP_OMARCHY_REPO:=https://github.com/basecamp/omarchy}"  # where stock themes come from
 : "${OTP_THEMES_FILE:=$OTP_ROOT/themes.json}"
 
 OTP_DEFAULT_SCENES="desktop hero terminal editor btop about menu apps notification lock palette"

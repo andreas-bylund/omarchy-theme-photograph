@@ -1,0 +1,77 @@
+name: Bug report
+description: Something did not photograph the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you run, and what did you get instead of pictures?
+      placeholder: "Ran `omarchy-theme-photograph shoot` on tokyo-night; the hero scene came out with ..."
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `omarchy-theme-photograph version`
+      placeholder: omarchy-theme-photograph 0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `omarchy-theme-photograph doctor`
+      description: Paste it as is. It lists the Omarchy and Hyprland versions and which tools were found.
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scene
+    attributes:
+      label: Scene
+      description: Which scene is affected, if it is one in particular?
+      options:
+        - all of them
+        - desktop
+        - hero
+        - terminal
+        - editor
+        - btop
+        - about
+        - files
+        - colors
+        - menu
+        - apps
+        - notification
+        - lock
+        - palette
+    validations:
+      required: false
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it run
+      options:
+        - On my own desktop
+        - In a VM (vm/vm.sh)
+        - In another VM
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Terminal output
+      description: Everything the command printed, including warnings.
+      render: text
+
+  - type: textarea
+    id: picture
+    attributes:
+      label: Picture
+      description: Drag the wrong picture in here if there is one. A thumbnail is enough.

@@ -1,0 +1,35 @@
+name: New scene
+description: Suggest another picture every theme should get
+labels: [scene]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Scene
+      description: A short name and the app or surface it shows
+      placeholder: "browser: Chromium with the Omarchy start page"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: What does it show that the current scenes do not?
+      description: Every scene costs a few seconds per theme, so it should reveal something a theme can get right or wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: How would it stay identical across themes?
+      description: What is on screen, what content, what size. Scenes must show the same thing in every theme or the pictures are not comparable.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: stock
+    attributes:
+      label: Availability
+      options:
+        - label: The app is part of a stock Omarchy install

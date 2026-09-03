@@ -9,7 +9,9 @@
 #     endpoint=https://<account-id>.r2.cloudflarestorage.com acl=private
 #
 # Images are immutable per capture, so they get a long cache lifetime; the
-# index is refreshed often, so it gets a short one. PNG files are left out.
+# index is refreshed often, so it gets a short one. The lossless scene PNGs
+# (<theme>/<scene>.png) are left out; original wallpapers copied with
+# --keep-wallpapers live under <theme>/wallpapers/ and are uploaded.
 set -euo pipefail
 
 OUT="${1:?usage: upload-r2.sh <out-dir> <remote:bucket[/prefix]>}"
@@ -19,7 +21,7 @@ command -v rclone >/dev/null || { echo "rclone is not installed (pacman -S rclon
 [[ -f $OUT/index.json ]] || { echo "no index.json in $OUT - run 'omarchy-theme-photograph index' first" >&2; exit 1; }
 
 rclone sync "$OUT" "$DEST" \
-  --exclude '*.png' --exclude 'index.json' \
+  --exclude '/*/*.png' --exclude 'index.json' \
   --checksum --transfers 16 --fast-list \
   --header-upload 'Cache-Control: public, max-age=31536000' -v
 

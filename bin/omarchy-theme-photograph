@@ -17,6 +17,8 @@ source "$OTP_ROOT/lib/theme.sh"
 source "$OTP_ROOT/lib/render.sh"
 source "$OTP_ROOT/lib/scenes.sh"
 
+OTP_VERSION=$(cat "$OTP_ROOT/VERSION" 2>/dev/null || echo unknown)
+
 usage() {
   cat <<USAGE
 Usage: omarchy-theme-photograph <command> [options]
@@ -25,8 +27,11 @@ Commands:
   shoot   Photograph the current theme (or --theme NAME after switching to it)
   batch   Install and photograph every theme in a list (themes.json)
   index   Build out/index.json from the meta.json files in the output directory
+  qa      List themes whose menu, launcher, lock or notification picture is
+          missing its popup, or whose pictures are one flat colour
   scenes  List available scenes
   doctor  Check that everything needed is installed
+  version Print the version
 
 Common options:
   --out DIR          Output directory (default: ./out)
@@ -37,6 +42,9 @@ Common options:
   --scale N          HiDPI scale factor (default: $OTP_SCALE)
   --settle SECONDS   Extra wait before each capture (default: $OTP_SETTLE)
   --keep-png         Keep the lossless PNG next to the WebP files
+  --keep-wallpapers  Copy the theme's original wallpaper files into the output,
+                     next to the previews (default: previews and links only)
+  --no-wallpapers    Do not list or preview the theme's wallpapers
 
 shoot options:
   --theme NAME       Switch to NAME first, and switch back afterwards
@@ -67,6 +75,8 @@ parse_common_option() {
     --scale) OTP_SCALE="$2"; return 2 ;;
     --settle) OTP_SETTLE="$2"; return 2 ;;
     --keep-png) OTP_KEEP_PNG=1; return 1 ;;
+    --keep-wallpapers) OTP_KEEP_WALLPAPERS=1; return 1 ;;
+    --no-wallpapers) OTP_WALLPAPERS=0; return 1 ;;
     -h | --help) usage; exit 0 ;;
   esac
   return 0
@@ -144,6 +154,9 @@ cmd_batch() {
     fi
 
     log "[$((done_count + 1))] $name"
+    if (( OTP_SHELL_RESTART_EVERY > 0 && done_count > 0 && done_count % OTP_SHELL_RESTART_EVERY == 0 )); then
+      otp_shell_restart
+    fi
     if [[ -n $repo ]]; then
       if (( ! reinstall )) && [[ -d $OTP_USER_THEMES/$install_name/.git ]]; then
         theme_set "$install_name" || { failed+=("$name"); continue; }
@@ -181,6 +194,15 @@ cmd_index() {
   render_index "$OTP_OUT"
 }
 
+cmd_qa() {
+  local used
+  while (($#)); do
+    parse_common_option "$@" && die "unknown option: $1"
+    used=$?; shift "$used"
+  done
+  render_qa "$OTP_OUT"
+}
+
 cmd_scenes() {
   local s
   for s in $OTP_ALL_SCENES; do
@@ -210,8 +232,10 @@ main() {
     shoot) cmd_shoot "$@" ;;
     batch) cmd_batch "$@" ;;
     index) cmd_index "$@" ;;
+    qa) cmd_qa "$@" ;;
     scenes) cmd_scenes ;;
     doctor) cmd_doctor ;;
+    version | -V | --version) echo "omarchy-theme-photograph $OTP_VERSION" ;;
     help | -h | --help) usage ;;
     *) usage >&2; exit 1 ;;
   esac
