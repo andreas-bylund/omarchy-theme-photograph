@@ -1,0 +1,8 @@
+# Sample configuration used in the file listing of the terminal scene.
+[camera]
+width = 1920
+height = 1080
+scale = 2
+
+[scenes]
+default = ["desktop", "hero", "terminal", "editor", "btop", "menu", "apps", "lock"]

@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+# omarchy-theme-photograph -- take consistent screenshots of Omarchy themes.
+#
+# Creates a virtual (headless) Hyprland screen next to your real ones, opens a
+# fixed set of scenes on it, and photographs each one with grim. Your own
+# screens are left alone apart from the theme switch itself.
+set -euo pipefail
+
+OTP_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+export OTP_ROOT
+export PATH="${OMARCHY_PATH:-/usr/share/omarchy}/bin:$PATH"
+
+# shellcheck source=../lib/common.sh
+source "$OTP_ROOT/lib/common.sh"
+source "$OTP_ROOT/lib/hypr.sh"
+source "$OTP_ROOT/lib/theme.sh"
+source "$OTP_ROOT/lib/render.sh"
+source "$OTP_ROOT/lib/scenes.sh"
+
+usage() {
+  cat <<USAGE
+Usage: omarchy-theme-photograph <command> [options]
+
+Commands:
+  shoot   Photograph the current theme (or --theme NAME after switching to it)
+  batch   Install and photograph every theme in a list (themes.json)
+  index   Build out/index.json from the meta.json files in the output directory
+  scenes  List available scenes
+  doctor  Check that everything needed is installed
+
+Common options:
+  --out DIR          Output directory (default: ./out)
+  --scenes a,b,c     Scenes to capture (default: $OTP_DEFAULT_SCENES)
+                     Use "all" for every scene.
+  --width N          Logical width of the virtual screen (default: $OTP_WIDTH)
+  --height N         Logical height (default: $OTP_HEIGHT)
+  --scale N          HiDPI scale factor (default: $OTP_SCALE)
+  --settle SECONDS   Extra wait before each capture (default: $OTP_SETTLE)
+  --keep-png         Keep the lossless PNG next to the WebP files
+
+shoot options:
+  --theme NAME       Switch to NAME first, and switch back afterwards
+  --name "Title"     Display name to store in meta.json
+
+batch options:
+  --list FILE        Theme list (default: themes.json in the repo)
+  --only a,b         Only these entries (matched on slug or install name)
+  --limit N          Stop after N themes
+  --skip-existing    Skip themes that already have a meta.json in --out
+  --stock / --community
+                     Only stock themes, or only git-installed community themes
+  --reinstall        Re-clone community themes that are already installed
+  --remove-after     Remove each community theme again after photographing it
+
+Every option can also be given as an environment variable (OTP_OUT, OTP_SCENES, ...).
+USAGE
+}
+
+# Consumes one common option. Returns the number of arguments it used (1 or 2),
+# or 0 when the option is not a common one.
+parse_common_option() {
+  case "$1" in
+    --out) OTP_OUT=$(readlink -f "$2"); return 2 ;;
+    --scenes) OTP_SCENES="${2//,/ }"; [[ $OTP_SCENES == all ]] && OTP_SCENES="$OTP_ALL_SCENES"; return 2 ;;
+    --width) OTP_WIDTH="$2"; return 2 ;;
+    --height) OTP_HEIGHT="$2"; return 2 ;;
+    --scale) OTP_SCALE="$2"; return 2 ;;
+    --settle) OTP_SETTLE="$2"; return 2 ;;
+    --keep-png) OTP_KEEP_PNG=1; return 1 ;;
+    -h | --help) usage; exit 0 ;;
+  esac
+  return 0
+}
+
+otp_preflight() {
+  otp_require hyprctl grim jq magick omarchy-theme-set omarchy-shell omarchy-menu
+  hypr_has_lua_api || die "this Hyprland has no Lua API (needs Omarchy 4 / Hyprland >= 0.55)"
+  [[ -n $(theme_current) ]] || die "Omarchy reports no current theme"
+  mkdir -p "$OTP_OUT"
+}
+
+cmd_shoot() {
+  local restore="" used
+  while (($#)); do
+    case "$1" in
+      --theme) OTP_THEME="$2"; shift 2 ;;
+      --name) OTP_THEME_NAME="$2"; shift 2 ;;
+      *)
+        parse_common_option "$@" && die "unknown option: $1"
+        used=$?; shift "$used" ;;
+    esac
+  done
+  otp_preflight
+  if [[ -n ${OTP_THEME:-} ]]; then
+    restore=$(theme_current)
+    theme_set "$OTP_THEME" || die "could not apply theme '$OTP_THEME'"
+  fi
+  otp_shoot_current "${OTP_THEME_NAME:-}"
+  if [[ -n $restore && $restore != "$(theme_current)" ]]; then
+    theme_set "$restore" || warn "could not restore theme '$restore'"
+  fi
+}
+
+cmd_batch() {
+  local only="" limit=0 skip_existing=0 filter="" reinstall=0 remove_after=0 used
+  while (($#)); do
+    case "$1" in
+      --list) OTP_THEMES_FILE=$(readlink -f "$2"); shift 2 ;;
+      --only) only=",$2,"; shift 2 ;;
+      --limit) limit="$2"; shift 2 ;;
+      --skip-existing) skip_existing=1; shift ;;
+      --stock) filter=stock; shift ;;
+      --community) filter=community; shift ;;
+      --reinstall) reinstall=1; shift ;;
+      --remove-after) remove_after=1; shift ;;
+      *)
+        parse_common_option "$@" && die "unknown option: $1"
+        used=$?; shift "$used" ;;
+    esac
+  done
+  otp_preflight
+  [[ -f $OTP_THEMES_FILE ]] || die "theme list not found: $OTP_THEMES_FILE"
+
+  local orig count=0 done_count=0 failed=() entry name slug repo stock install_name
+  orig=$(theme_current)
+  count=$(jq '.themes | length' "$OTP_THEMES_FILE")
+  log "Batch: $count themes listed in $OTP_THEMES_FILE"
+
+  while IFS= read -r entry; do
+    name=$(jq -r '.name' <<<"$entry")
+    slug=$(jq -r '.slug' <<<"$entry")
+    repo=$(jq -r '.repo // empty' <<<"$entry")
+    stock=$(jq -r '.stock // false' <<<"$entry")
+    install_name="$slug"
+    [[ -n $repo ]] && install_name=$(theme_name_from_repo "$repo")
+
+    [[ $filter == stock && $stock != true ]] && continue
+    [[ $filter == community && $stock == true ]] && continue
+    [[ -n $only && $only != *",$slug,"* && $only != *",$install_name,"* ]] && continue
+    (( limit > 0 && done_count >= limit )) && break
+    if (( skip_existing )) && [[ -f $OTP_OUT/$install_name/meta.json ]]; then
+      info "skipping $install_name (already photographed)"
+      continue
+    fi
+
+    log "[$((done_count + 1))] $name"
+    if [[ -n $repo ]]; then
+      if (( ! reinstall )) && [[ -d $OTP_USER_THEMES/$install_name/.git ]]; then
+        theme_set "$install_name" || { failed+=("$name"); continue; }
+      else
+        theme_install "$repo" || { failed+=("$name"); continue; }
+      fi
+    else
+      theme_set "$slug" || { failed+=("$name"); continue; }
+    fi
+
+    if otp_shoot_current "$name"; then
+      done_count=$((done_count + 1))
+    else
+      failed+=("$name")
+    fi
+    if (( remove_after )) && [[ -n $repo ]]; then
+      theme_remove "$install_name"
+    fi
+  done < <(jq -c '.themes[]' "$OTP_THEMES_FILE")
+
+  if [[ -n $orig && $orig != "$(theme_current)" ]]; then
+    theme_set "$orig" || warn "could not restore theme '$orig'"
+  fi
+  render_index "$OTP_OUT" || true
+  log "Done: $done_count photographed, ${#failed[@]} failed"
+  (( ${#failed[@]} == 0 )) || { warn "failed: ${failed[*]}"; return 1; }
+}
+
+cmd_index() {
+  local used
+  while (($#)); do
+    parse_common_option "$@" && die "unknown option: $1"
+    used=$?; shift "$used"
+  done
+  render_index "$OTP_OUT"
+}
+
+cmd_scenes() {
+  local s
+  for s in $OTP_ALL_SCENES; do
+    if [[ " $OTP_DEFAULT_SCENES " == *" $s "* ]]; then echo "$s (default)"; else echo "$s"; fi
+  done
+}
+
+cmd_doctor() {
+  local ok=1 c
+  for c in hyprctl grim jq magick omarchy-theme-set omarchy-theme-install omarchy-shell omarchy-menu omarchy-notification-send xdg-terminal-exec; do
+    if otp_have "$c"; then echo "  ok       $c"; else echo "  MISSING  $c"; ok=0; fi
+  done
+  for c in nvim btop nautilus omarchy-launch-about omarchy-dev-theme-preview; do
+    if otp_have "$c"; then echo "  ok       $c"; else echo "  optional $c (some scenes will be skipped)"; fi
+  done
+  if hypr_has_lua_api; then echo "  ok       Hyprland Lua API"; else echo "  MISSING  Hyprland Lua API (Omarchy 4 / Hyprland >= 0.55 required)"; ok=0; fi
+  echo "  theme    $(theme_current 2>/dev/null || echo none)"
+  echo "  omarchy  $(theme_omarchy_version)"
+  echo "  hyprland $(theme_hyprland_version)"
+  if (( ok )); then echo "All good."; else echo "Something is missing."; return 1; fi
+}
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+  case "$cmd" in
+    shoot) cmd_shoot "$@" ;;
+    batch) cmd_batch "$@" ;;
+    index) cmd_index "$@" ;;
+    scenes) cmd_scenes ;;
+    doctor) cmd_doctor ;;
+    help | -h | --help) usage ;;
+    *) usage >&2; exit 1 ;;
+  esac
+}
+
+main "$@"
