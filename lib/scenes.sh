@@ -103,7 +103,7 @@ otp_launch() {
 # otp_shell_restart [MONITOR]  -- restart the shell, wait for its bar (on
 # MONITOR when given, anywhere otherwise), then let things settle.
 otp_shell_restart() {
-  local mon="${1:-}" i q
+  local mon="${1:-}" q
   log "Restarting the Omarchy shell"
   omarchy-restart-shell >/dev/null 2>&1 || warn "omarchy-restart-shell failed"
   if [[ -n $mon ]]; then q='.[$m].levels[]?[]? | select(.namespace == "omarchy-bar")'; else q='.[] | .levels[]?[]? | select(.namespace == "omarchy-bar")'; fi

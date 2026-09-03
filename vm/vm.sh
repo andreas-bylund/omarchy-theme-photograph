@@ -120,8 +120,7 @@ boot() {
   fi
   rm -f "$pidfile"
   setsid -f qemu-system-x86_64 "${args[@]}" >"$log" 2>&1
-  local i
-  for i in $(seq 1 20); do
+  for _ in $(seq 1 20); do
     running && break
     sleep 0.5
   done

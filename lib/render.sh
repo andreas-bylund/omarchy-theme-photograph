@@ -77,7 +77,7 @@ render_wallpaper_title() {
 # under OTP_THEME_OUT, copies the originals too with OTP_KEEP_WALLPAPERS=1,
 # and leaves the list in OTP_WALLPAPERS_JSON and the repo in OTP_SOURCE_JSON.
 render_wallpapers() {
-  local slug="$1" dir out f base ext name w h fmt bytes sha orig rel url page cur n=0
+  local slug="$1" dir out f base name w h fmt bytes sha orig rel url page cur n=0
   local -A seen=()
   OTP_WALLPAPERS_JSON='[]'
   OTP_SOURCE_JSON=$(theme_source_json "$slug")
