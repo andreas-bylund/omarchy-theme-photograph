@@ -23,6 +23,7 @@
 : "${OTP_THEMES_FILE:=$OTP_ROOT/themes.json}"
 
 OTP_DEFAULT_SCENES="desktop hero terminal editor btop about menu apps notification lock palette"
+# shellcheck disable=SC2034  # used by bin/omarchy-theme-photograph
 OTP_ALL_SCENES="$OTP_DEFAULT_SCENES colors files"
 : "${OTP_SCENES:=$OTP_DEFAULT_SCENES}"
 

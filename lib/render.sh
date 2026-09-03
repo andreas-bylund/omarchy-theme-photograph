@@ -92,15 +92,15 @@ render_wallpapers() {
   current=$(theme_background)
 
   while IFS= read -r f; do
-    base=$(basename "$f"); ext=${base##*.}; name=${base%.*}
+    base=$(basename "$f"); name=${base%.*}
     [[ -n ${seen[$name]:-} ]] && name="$base"
     seen[$name]=1
-    read -r w h fmt < <(magick identify -ping -format '%w %h %m' "$f[0]" 2>/dev/null || echo "0 0 ?")
+    read -r w h fmt < <(magick identify -ping -format '%w %h %m' "${f}[0]" 2>/dev/null || echo "0 0 ?")
     if (( w == 0 )); then warn "cannot read wallpaper $base"; continue; fi
     bytes=$(stat -c %s "$f")
     sha=$(sha256sum "$f" | cut -c1-64)
-    magick "$f[0]" -strip -resize "${OTP_CARD_WIDTH}>" -quality 82 "$out/$name.card.webp"
-    magick "$f[0]" -strip -resize "${OTP_THUMB_WIDTH}>" -quality 80 "$out/$name.thumb.webp"
+    magick "${f}[0]" -strip -resize "${OTP_CARD_WIDTH}>" -quality 82 "$out/$name.card.webp"
+    magick "${f}[0]" -strip -resize "${OTP_THUMB_WIDTH}>" -quality 80 "$out/$name.thumb.webp"
     orig=null
     if [[ $OTP_KEEP_WALLPAPERS == 1 ]]; then
       cp -p "$f" "$out/$base"

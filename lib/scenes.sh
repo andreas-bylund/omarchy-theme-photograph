@@ -107,7 +107,7 @@ otp_shell_restart() {
   log "Restarting the Omarchy shell"
   omarchy-restart-shell >/dev/null 2>&1 || warn "omarchy-restart-shell failed"
   if [[ -n $mon ]]; then q='.[$m].levels[]?[]? | select(.namespace == "omarchy-bar")'; else q='.[] | .levels[]?[]? | select(.namespace == "omarchy-bar")'; fi
-  for i in $(seq 1 150); do
+  for _ in $(seq 1 150); do
     hypr_json layers | jq -e --arg m "$mon" "$q" >/dev/null 2>&1 && break
     sleep 0.1
   done

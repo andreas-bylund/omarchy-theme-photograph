@@ -94,6 +94,7 @@ boot() {
   [[ -w /dev/kvm ]] || die "/dev/kvm is not writable; is KVM enabled and are you in the kvm group?"
   create
   local iso=${1:-}
+  # shellcheck disable=SC2054  # QEMU options are single words that contain commas
   local args=(
     -name "$VM_NAME"
     -machine q35,accel=kvm
@@ -113,6 +114,7 @@ boot() {
   )
   if [[ -n $iso ]]; then
     [[ -f $iso ]] || die "ISO not found: $iso"
+    # shellcheck disable=SC2054
     args+=(-drive file="$iso",media=cdrom,if=none,id=cd0,format=raw,readonly=on
            -device ide-cd,drive=cd0,bootindex=1)
   fi
@@ -281,8 +283,7 @@ cmd_stop() {
   else
     monitor_cmd system_powerdown
   fi
-  local i
-  for i in $(seq 1 60); do
+  for _ in $(seq 1 60); do
     kill -0 "$pid" 2>/dev/null || { info "stopped"; rm -f "$pidfile"; return 0; }
     sleep 1
   done

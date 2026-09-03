@@ -31,8 +31,8 @@ theme_repo_url() {
 
 # Wait until Omarchy reports NAME as current, then give the re-tint hooks a moment.
 theme_wait() {
-  local name="$1" i
-  for i in $(seq 1 150); do
+  local name="$1"
+  for _ in $(seq 1 150); do
     [[ $(theme_current) == "$name" ]] && break
     sleep 0.1
   done
@@ -66,6 +66,7 @@ theme_mode() {
   fi
 }
 
+# shellcheck disable=SC2120  # the optional path is used by the tests and the palette
 theme_colors_json() {
   local toml="${1:-$OTP_STATE/theme/colors.toml}"
   [[ -f $toml ]] || { echo '{}'; return; }
