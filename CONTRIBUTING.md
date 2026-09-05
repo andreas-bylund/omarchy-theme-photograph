@@ -39,6 +39,16 @@ If something goes wrong halfway, the cleanup still runs on exit. If it does
 not (say the shell was killed), `hyprctl output remove OTP` removes the
 virtual screen by hand.
 
+That removal does not always work. A disabled leftover screen stays in
+`hyprctl monitors all`, is gone from `hyprctl monitors`, and can be neither
+removed nor turned back into a usable screen (`grim` calls it an unknown
+output), yet it keeps its name claimed. Runs therefore take the next free name,
+`OTP-2`, `OTP-3` and so on.
+
+Leftovers usually mean a monitor manager is running and disabling the virtual
+screen mid-run; see "Monitor managers and leftover screens" in the README.
+Pause it while you work, or captures fail with `unknown output`.
+
 For anything that runs `batch`, use the VM in `vm/`. It installs community
 themes, which means cloning strangers' repositories.
 

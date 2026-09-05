@@ -7,6 +7,8 @@
 : "${OTP_HEIGHT:=1080}"         # logical height of the virtual screen
 : "${OTP_SCALE:=2}"             # HiDPI scale; physical pixels = logical * scale
 : "${OTP_OUTPUT:=OTP}"          # name of the headless Hyprland output we create
+                                # (OTP-2, OTP-3, ... when earlier runs left the
+                                # name claimed)
 : "${OTP_SETTLE:=2}"            # seconds to wait after windows appear before shooting
 : "${OTP_OUT:=$PWD/out}"        # output directory
 : "${OTP_KEEP_PNG:=0}"          # keep the lossless PNG next to the WebP files

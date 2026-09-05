@@ -45,6 +45,19 @@ assert_eq "shell quote" "$(otp_shell_quote a 'b c' "it's")" "'a' 'b c' 'it'\\''s
 assert_eq "lua string" "$(hypr_lua_str 'plain')" '[=[plain]=]'
 assert_eq "lua string escalates brackets" "$(hypr_lua_str 'x]=]y')" '[==[x]=]y]==]'
 
+# --- Picking a free name for the virtual screen ---
+# hypr_output_exists is stubbed here: OTP and OTP-2 are taken, OTP-3 is free.
+hypr_output_exists() { [[ $1 == OTP || $1 == OTP-2 ]]; }
+assert_eq "screen name: keeps a free name" "$(hypr_unused_output_name FREE)" FREE
+assert_eq "screen name: skips taken names" "$(hypr_unused_output_name OTP)" OTP-3
+hypr_output_exists() { true; }
+if hypr_unused_output_name OTP >/dev/null; then
+  bad "screen name: fails when every name is taken"
+else
+  ok "screen name: fails when every name is taken"
+fi
+unset -f hypr_output_exists
+
 # --- colors.toml ---
 colors=$(theme_colors_json "$FIXTURES/colors.toml")
 assert_eq "colors: accent" "$(jq -r .accent <<<"$colors")" '#7aa2f7'

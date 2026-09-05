@@ -22,7 +22,9 @@ otp_session_begin() {
   hypr_config "animations = { enabled = false }, cursor = { inactive_timeout = 1, no_hardware_cursors = 0 }" || true
 
   OTP_WS=$(hypr_free_workspace) || die "no free workspace id"
-  hypr_create_output "$OTP_OUTPUT" "$OTP_WIDTH" "$OTP_HEIGHT" "$OTP_SCALE"
+  local screen
+  screen=$(hypr_create_output "$OTP_OUTPUT" "$OTP_WIDTH" "$OTP_HEIGHT" "$OTP_SCALE") || exit 1
+  OTP_OUTPUT="$screen"
   hypr_focus_monitor "$OTP_OUTPUT"
   hypr_focus_workspace "$OTP_WS"
   sleep 0.5
@@ -46,7 +48,8 @@ otp_session_end() {
   otp_scene_cleanup
   [[ -n ${OTP_ORIG_MON:-} ]] && hypr_focus_monitor "$OTP_ORIG_MON" >/dev/null 2>&1
   [[ -n ${OTP_ORIG_WS:-} ]] && hypr_focus_workspace "$OTP_ORIG_WS" >/dev/null 2>&1
-  hypr_remove_output "$OTP_OUTPUT"
+  hypr_remove_output "$OTP_OUTPUT" ||
+    warn "could not remove the virtual screen $OTP_OUTPUT; Hyprland keeps it disabled and out of the way until you restart it"
   local restore=()
   [[ -n ${OTP_ORIG_ANIM:-} ]] && restore+=("animations = { enabled = $OTP_ORIG_ANIM }")
   restore+=("cursor = { inactive_timeout = ${OTP_ORIG_CURSOR_TIMEOUT:-0}, no_hardware_cursors = ${OTP_ORIG_HW_CURSORS:-2} }")
@@ -121,11 +124,24 @@ otp_frame_is_flat() {
   awk -v sd="$sd" 'BEGIN { exit !(sd < 0.003) }'
 }
 
+# grim cannot capture a screen that is no longer enabled. That is what a monitor
+# manager does to our virtual screen when it decides the screen is not part of
+# the layout it knows, and it is worth saying so once instead of eleven times.
+otp_capture_failed() {
+  local scene="$1" mon="$2"
+  warn "grim failed for $scene"
+  hypr_json monitors | jq -e --arg n "$mon" '.[] | select(.name == $n)' >/dev/null && return 0
+  [[ ${OTP_SCREEN_GONE:-0} == 1 ]] && return 0
+  OTP_SCREEN_GONE=1
+  warn "the virtual screen $mon was disabled while photographing; a monitor manager (hyprmoncfg, kanshi, shikane, ...) does this. Pause it for the run."
+  return 0
+}
+
 # otp_capture SCENE [MONITOR]
 otp_capture() {
   local scene="$1" mon="${2:-$OTP_OUTPUT}" png
   png="$OTP_THEME_OUT/$scene.png"
-  grim -o "$mon" "$png" || { warn "grim failed for $scene"; return 1; }
+  grim -o "$mon" "$png" || { otp_capture_failed "$scene" "$mon"; return 1; }
   if otp_frame_is_flat "$png"; then
     if [[ ${OTP_SHELL_RESTARTED:-0} == 1 ]]; then
       warn "$scene is a single flat colour even after a shell restart"
@@ -133,7 +149,7 @@ otp_capture() {
     else
       warn "$scene came out as one flat colour; restarting the shell and trying again"
       otp_shell_restart "$mon"
-      grim -o "$mon" "$png" || { warn "grim failed for $scene"; return 1; }
+      grim -o "$mon" "$png" || { otp_capture_failed "$scene" "$mon"; return 1; }
       if otp_frame_is_flat "$png"; then warn "$scene is still a single flat colour"; otp_note_flat "$scene"; fi
     fi
   fi

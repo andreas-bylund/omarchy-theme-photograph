@@ -43,30 +43,61 @@ hypr_active_workspace() { hypr_json activeworkspace | jq -r '.id'; }
 hypr_output_exists() { hypr_json monitors all | jq -e --arg n "$1" '.[] | select(.name == $n)' >/dev/null 2>&1; }
 
 # hypr_create_output NAME LOGICAL_W LOGICAL_H SCALE
+# Prints the name of the screen it created, which is NAME unless that name is
+# still claimed by a leftover from an earlier run.
 hypr_create_output() {
-  local name="$1" w="$2" h="$3" scale="$4" pw ph i
+  local name="$1" w="$2" h="$3" scale="$4" pw ph i out
   pw=$(awk -v w="$w" -v s="$scale" 'BEGIN { printf "%d", w * s }')
   ph=$(awk -v h="$h" -v s="$scale" 'BEGIN { printf "%d", h * s }')
 
-  if hypr_output_exists "$name"; then
-    warn "output $name already exists, reusing it"
-  else
-    hyprctl output create headless "$name" >/dev/null || die "could not create headless output $name"
-  fi
+  # Hyprland tends to keep a disabled entry behind for a virtual screen we
+  # created, and that entry keeps the name for the rest of the session: it can
+  # be neither removed nor turned back into a usable screen (grim reports it as
+  # an unknown output), while `output create` refuses the name as taken. So a
+  # leftover is never reused; each run takes the first name that is still free.
+  out="$name"
+  name=$(hypr_unused_output_name "$name") ||
+    die "no free name left for the virtual screen; log out and back in to clear the leftovers"
+  [[ $name == "$out" ]] ||
+    warn "$out is a disabled leftover and cannot be reused, photographing on $name instead"
+
+  # hyprctl exits 0 even when it refuses, so the reply has to be read.
+  out=$(hyprctl output create headless "$name" 2>&1)
+  [[ $out == ok* ]] || die "could not create the virtual screen $name: $out"
   hypr_eval "hl.monitor({ output = \"$name\", mode = \"${pw}x${ph}@60\", position = \"auto\", scale = $scale })" || true
 
   for i in $(seq 1 50); do
     if hypr_json monitors | jq -e --arg n "$name" --argjson pw "$pw" '.[] | select(.name == $n and .width == $pw)' >/dev/null; then
+      echo "$name"
       return 0
     fi
     sleep 0.1
   done
-  die "headless output $name did not come up at ${pw}x${ph}"
+  die "the virtual screen $name did not come up at ${pw}x${ph}"
 }
 
+# hypr_unused_output_name BASE -- BASE if it is free, else BASE-2, BASE-3, ...
+hypr_unused_output_name() {
+  local base="$1" i
+  hypr_output_exists "$base" || { echo "$base"; return 0; }
+  for i in $(seq 2 99); do
+    hypr_output_exists "$base-$i" || { echo "$base-$i"; return 0; }
+  done
+  return 1
+}
+
+# Best effort: Hyprland may answer "output not found" for a screen that is
+# plainly there, and may keep a disabled entry behind for one it does remove.
+# Non-zero if the name is still taken afterwards.
 hypr_remove_output() {
-  hypr_output_exists "$1" && hyprctl output remove "$1" >/dev/null 2>&1
-  return 0
+  local i
+  hypr_output_exists "$1" || return 0
+  hyprctl output remove "$1" >/dev/null 2>&1
+  for i in $(seq 1 10); do
+    hypr_output_exists "$1" || return 0
+    sleep 0.1
+  done
+  return 1
 }
 
 # --- Focus ---

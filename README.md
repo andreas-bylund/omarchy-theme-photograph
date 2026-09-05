@@ -303,6 +303,26 @@ ships with.
 6. Everything is closed, the virtual screen is removed and your focus,
    animation and cursor settings are put back.
 
+### Monitor managers and leftover screens
+
+If a monitor manager runs alongside Hyprland (hyprmoncfg, kanshi, shikane,
+way-displays and the like), it may spot the virtual screen, decide it is not
+part of your saved layout, and disable it a second or two after it appears.
+Captures then fail with `unknown output`, and the disabled screen keeps its
+name for the rest of the session, so later runs move on to `OTP-2`, `OTP-3`
+and so on. Pause the manager for the duration of the run; with hyprmoncfg:
+
+```bash
+systemctl --user stop hyprmoncfgd.service
+omarchy-theme-photograph shoot
+systemctl --user start hyprmoncfgd.service
+```
+
+Leftover screens are disabled, invisible and never touch your real screens.
+`omarchy-theme-photograph doctor` counts them, and logging out clears them --
+though a manager that has written them into its own config will bring them
+back, so clear them there too.
+
 ## Security and privacy
 
 - The tool makes no network requests of its own and sends nothing anywhere.
