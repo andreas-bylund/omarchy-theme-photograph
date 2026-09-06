@@ -40,18 +40,41 @@ hypr_has_lua_api() { hyprctl eval 'return 0' 2>/dev/null | grep -q '^ok'; }
 # --- Monitors and outputs ---
 hypr_focused_monitor() { hypr_json monitors | jq -r '.[] | select(.focused) | .name'; }
 hypr_active_workspace() { hypr_json activeworkspace | jq -r '.id'; }
+# The name is taken, by a live screen or by a disabled leftover.
 hypr_output_exists() { hypr_json monitors all | jq -e --arg n "$1" '.[] | select(.name == $n)' >/dev/null 2>&1; }
+# The screen is up, so it can be focused, photographed and removed.
+hypr_output_enabled() { hypr_json monitors | jq -e --arg n "$1" '.[] | select(.name == $n)' >/dev/null 2>&1; }
+
+# hypr_pick_output_name BASE -- the name this run should use, non-zero when
+# nothing is free. BASE when it is unused, and when a screen of that name is
+# still up from a killed run (that one works, and this run removes it on the
+# way out). A disabled leftover can be neither removed nor revived yet keeps
+# its name for the session, so those are skipped: BASE-2, BASE-3, ...
+hypr_pick_output_name() {
+  local base="$1" i
+  hypr_output_enabled "$base" && { echo "$base"; return 0; }
+  hypr_output_exists "$base" || { echo "$base"; return 0; }
+  for i in $(seq 2 99); do
+    hypr_output_enabled "$base-$i" && { echo "$base-$i"; return 0; }
+    hypr_output_exists "$base-$i" || { echo "$base-$i"; return 0; }
+  done
+  return 1
+}
 
 # hypr_create_output NAME LOGICAL_W LOGICAL_H SCALE
+# Creates the virtual screen, or takes over an enabled screen of that name left
+# behind by a killed run. Dies if it does not come up at the requested size.
 hypr_create_output() {
-  local name="$1" w="$2" h="$3" scale="$4" pw ph i
+  local name="$1" w="$2" h="$3" scale="$4" pw ph i reply
   pw=$(awk -v w="$w" -v s="$scale" 'BEGIN { printf "%d", w * s }')
   ph=$(awk -v h="$h" -v s="$scale" 'BEGIN { printf "%d", h * s }')
 
-  if hypr_output_exists "$name"; then
-    warn "output $name already exists, reusing it"
+  if hypr_output_enabled "$name"; then
+    warn "$name is still up from an earlier run, reusing it"
   else
-    hyprctl output create headless "$name" >/dev/null || die "could not create headless output $name"
+    # hyprctl exits 0 even when it refuses, so the reply has to be read.
+    reply=$(hyprctl output create headless "$name" 2>&1)
+    [[ $reply == ok* ]] || die "could not create the virtual screen $name: $reply"
   fi
   hypr_eval "hl.monitor({ output = \"$name\", mode = \"${pw}x${ph}@60\", position = \"auto\", scale = $scale })" || true
 
@@ -61,12 +84,20 @@ hypr_create_output() {
     fi
     sleep 0.1
   done
-  die "headless output $name did not come up at ${pw}x${ph}"
+  die "the virtual screen $name did not come up at ${pw}x${ph}"
 }
 
+# Best effort: removal does not always work, and Hyprland may keep a disabled
+# entry behind. Non-zero if the name is still taken afterwards.
 hypr_remove_output() {
-  hypr_output_exists "$1" && hyprctl output remove "$1" >/dev/null 2>&1
-  return 0
+  local i
+  hypr_output_exists "$1" || return 0
+  hyprctl output remove "$1" >/dev/null 2>&1
+  for i in $(seq 1 10); do
+    hypr_output_exists "$1" || return 0
+    sleep 0.1
+  done
+  return 1
 }
 
 # --- Focus ---

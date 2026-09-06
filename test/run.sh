@@ -45,6 +45,85 @@ assert_eq "shell quote" "$(otp_shell_quote a 'b c' "it's")" "'a' 'b c' 'it'\\''s
 assert_eq "lua string" "$(hypr_lua_str 'plain')" '[=[plain]=]'
 assert_eq "lua string escalates brackets" "$(hypr_lua_str 'x]=]y')" '[==[x]=]y]==]'
 
+# --- Picking a name for the virtual screen ---
+# No Hyprland here, so both lookups are stubbed. First round: OTP is a disabled
+# leftover (taken, not up), OTP-2 is a live screen a killed run left behind.
+hypr_output_exists()  { [[ $1 == OTP || $1 == OTP-2 ]]; }
+hypr_output_enabled() { [[ $1 == OTP-2 ]]; }
+assert_eq "screen name: keeps a free name" "$(hypr_pick_output_name FREE)" FREE
+assert_eq "screen name: reuses a live screen" "$(hypr_pick_output_name OTP-2)" OTP-2
+assert_eq "screen name: skips a leftover, reuses the live one after it" "$(hypr_pick_output_name OTP)" OTP-2
+# Second round: OTP and OTP-2 are both disabled leftovers, OTP-3 is free.
+hypr_output_enabled() { false; }
+assert_eq "screen name: skips disabled leftovers" "$(hypr_pick_output_name OTP)" OTP-3
+hypr_output_exists() { true; }
+if hypr_pick_output_name OTP >/dev/null; then
+  bad "screen name: fails when every name is taken"
+else
+  ok "screen name: fails when every name is taken"
+fi
+# Put the real lookups back: a stub replaces the sourced function outright, and
+# `unset -f` would leave nothing behind.
+# shellcheck source=../lib/hypr.sh
+source "$ROOT/lib/hypr.sh"
+
+# --- Reading the reply from `hyprctl output create` ---
+# It exits 0 even when it refuses the name, so only the reply says what happened.
+create_probe() {
+  # Runs in a subshell: die() exits, and the stubs stay out of later tests.
+  (
+    probe_reply="$1"
+    hypr_output_enabled() { false; }
+    hypr_eval() { :; }
+    hyprctl() { echo "$probe_reply"; }
+    hypr_json() { printf '[{"name":"OTP","width":3840}]'; }
+    sleep() { :; }
+    hypr_create_output OTP 1920 1080 2
+  ) >/dev/null 2>&1
+}
+if create_probe ok; then ok "create output: an ok reply means it worked"; else bad "create output: an ok reply means it worked"; fi
+if create_probe "Name already taken"; then bad "create output: a refusal is fatal"; else ok "create output: a refusal is fatal"; fi
+
+# --- Session plumbing ---
+# shellcheck source=../lib/scenes.sh
+source "$ROOT/lib/scenes.sh"
+# A whole session against stubs, with OTP a disabled leftover: it should run on
+# OTP-2, leave the configured OTP_OUTPUT alone (so the next theme in a batch
+# starts from OTP again), and remove the screen it actually created.
+session_probe=$(
+  hypr_output_exists()  { [[ $1 == OTP ]]; }
+  hypr_output_enabled() { false; }
+  hyprctl() { echo ok; }
+  hypr_json() {
+    case "$*" in
+      monitors) printf '[{"name":"OTP-2","width":3840}]' ;;
+      activeworkspace) printf '{"monitor":"OTP-2"}' ;;
+      *) printf '[]' ;;
+    esac
+  }
+  hypr_eval() { :; }
+  hypr_config() { :; }
+  hypr_opt() { echo 0; }
+  hypr_focused_monitor() { echo DP-1; }
+  hypr_active_workspace() { echo 1; }
+  hypr_free_workspace() { echo 90; }
+  hypr_focus_monitor() { :; }
+  hypr_focus_workspace() { :; }
+  hypr_wait_layer() { :; }
+  hypr_close_workspace_windows() { :; }
+  hypr_remove_output() { removed="$1"; }
+  omarchy-menu() { :; }
+  omarchy-shell() { :; }
+  sleep() { :; }
+  removed=""
+  otp_session_begin 2>/dev/null
+  during="$OTP_ACTIVE_OUTPUT"
+  otp_session_end 2>/dev/null
+  echo "base=$OTP_OUTPUT active=$during removed=$removed after=${OTP_ACTIVE_OUTPUT:-none}"
+)
+assert_eq "session: runs on the next free name and cleans that one up" \
+  "$session_probe" "base=OTP active=OTP-2 removed=OTP-2 after=none"
+
 # --- colors.toml ---
 colors=$(theme_colors_json "$FIXTURES/colors.toml")
 assert_eq "colors: accent" "$(jq -r .accent <<<"$colors")" '#7aa2f7'

@@ -219,6 +219,18 @@ cmd_doctor() {
     if otp_have "$c"; then echo "  ok       $c"; else echo "  optional $c (some scenes will be skipped)"; fi
   done
   if hypr_has_lua_api; then echo "  ok       Hyprland Lua API"; else echo "  MISSING  Hyprland Lua API (Omarchy 4 / Hyprland >= 0.55 required)"; ok=0; fi
+  # Leftovers are the names in `monitors all` that are not in `monitors`: an
+  # OTP screen from a run in progress is enabled and does not count.
+  local up leftovers
+  up=$(hypr_json monitors 2>/dev/null | jq -c '[.[].name]' 2>/dev/null || echo '[]')
+  leftovers=$(hypr_json monitors all 2>/dev/null | jq -r --arg n "$OTP_OUTPUT" --argjson up "$up" \
+    '[.[].name | . as $x | select(($x == $n or ($x | startswith($n + "-"))) and ($up | index($x) == null))] | join(" ")' \
+    2>/dev/null || true)
+  if [[ -n $leftovers ]]; then
+    echo "  note     $(wc -w <<<"$leftovers") disabled virtual screen(s) from earlier runs: $leftovers"
+    echo "           they stay out of your layout, but each one keeps its name; once $OTP_OUTPUT-99 is"
+    echo "           taken shoot cannot start until you log out. See the README on monitor managers."
+  fi
   echo "  theme    $(theme_current 2>/dev/null || echo none)"
   echo "  omarchy  $(theme_omarchy_version)"
   echo "  hyprland $(theme_hyprland_version)"
