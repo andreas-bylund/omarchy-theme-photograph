@@ -199,6 +199,15 @@ The [Omarchy theme registry](https://github.com/andreas-bylund/omarchy-theme-reg
 is a community index published as one JSON feed; `--registry` merges it in,
 keeping the first entry when a theme appears in both lists.
 
+Before merging, the script asks github.com whether each repository has been
+renamed (a renamed repo answers 301 with its new address; no API token needed).
+A theme that one list still knows by its old name is folded into the entry with
+the new name, and the old URL is kept in `renamed_from`. Without this, the
+same theme is photographed twice and the gallery shows it twice. `--no-resolve`
+skips the check for offline runs. If a rename is found for a theme that was
+already photographed under the old name, the script says so: remove that
+folder from `out/` (and the CDN) or it stays a duplicate.
+
 Each entry has the display `name`, the site `slug`, the git `repo`, and
 `install_name`, which is the directory name Omarchy gives the theme when it
 installs it (`omarchy-foo-theme` becomes `foo`). Output folders use the
@@ -307,8 +316,10 @@ ships with.
 
 - The tool makes no network requests of its own and sends nothing anywhere.
   The pictures land in a folder on your disk. The only network activity is
-  `scripts/fetch-theme-list.py`, which downloads the theme lists you ask for,
-  and `batch`, which runs `omarchy theme install` for each community theme.
+  `scripts/fetch-theme-list.py`, which downloads the theme lists you ask for
+  and asks github.com (a HEAD request per repository) whether repos were
+  renamed, and `batch`, which runs `omarchy theme install` for each community
+  theme.
 - `batch` therefore clones repositories written by strangers onto the
   machine it runs on. Omarchy refuses to load code from an installed theme
   (Lua, terminal configs, `vscode.json`), but the files are still on your disk.
