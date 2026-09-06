@@ -36,18 +36,20 @@ bin/omarchy-theme-photograph shoot --scenes desktop,terminal --out /tmp/otp-test
 ```
 
 If something goes wrong halfway, the cleanup still runs on exit. If it does
-not (say the shell was killed), `hyprctl output remove OTP` removes the
-virtual screen by hand.
+not (say the shell was killed), look at `hyprctl monitors all` and check which
+of the two kinds of leftover you have:
 
-That removal does not always work. A disabled leftover screen stays in
-`hyprctl monitors all`, is gone from `hyprctl monitors`, and can be neither
-removed nor turned back into a usable screen (`grim` calls it an unknown
-output), yet it keeps its name claimed. Runs therefore take the next free name,
-`OTP-2`, `OTP-3` and so on.
+- Still listed in `hyprctl monitors` as well: the screen is up and usable.
+  `hyprctl output remove OTP` (or whichever `OTP*` name it has) removes it, and
+  a new run would reuse it anyway.
+- Only in `hyprctl monitors all`: it is disabled. It can be neither removed nor
+  turned back into a usable screen (`grim` calls it an unknown output), yet it
+  keeps its name claimed, so runs take the next free name, `OTP-2`, `OTP-3` and
+  so on. Ignore it, or log out to clear it.
 
-Leftovers usually mean a monitor manager is running and disabling the virtual
-screen mid-run; see "Monitor managers and leftover screens" in the README.
-Pause it while you work, or captures fail with `unknown output`.
+Disabled leftovers usually mean a monitor manager is running and disabling the
+virtual screen mid-run; see "Monitor managers and leftover screens" in the
+README. Pause it while you work, or captures fail with `unknown output`.
 
 For anything that runs `batch`, use the VM in `vm/`. It installs community
 themes, which means cloning strangers' repositories.

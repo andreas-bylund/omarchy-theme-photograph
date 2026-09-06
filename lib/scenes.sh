@@ -2,6 +2,11 @@
 # Scenes: each scene_<name> function arranges something on the virtual screen
 # and calls otp_capture. Scenes run inside an active session (see otp_session_begin).
 
+# The virtual screen this session is working on. OTP_OUTPUT stays the
+# configured base name: a session whose base is claimed by a leftover runs on
+# OTP-2, OTP-3, ... and the next session starts from OTP again.
+OTP_ACTIVE_OUTPUT=""
+
 OTP_SHOWCASE_DIR="$OTP_ROOT/assets/showcase"
 OTP_TERMINAL_SHOWCASE="$OTP_ROOT/assets/terminal-showcase.sh"
 OTP_EDITOR_FILE="$OTP_SHOWCASE_DIR/showcase.rb"
@@ -22,23 +27,27 @@ otp_session_begin() {
   hypr_config "animations = { enabled = false }, cursor = { inactive_timeout = 1, no_hardware_cursors = 0 }" || true
 
   OTP_WS=$(hypr_free_workspace) || die "no free workspace id"
-  local screen
-  screen=$(hypr_create_output "$OTP_OUTPUT" "$OTP_WIDTH" "$OTP_HEIGHT" "$OTP_SCALE") || exit 1
-  OTP_OUTPUT="$screen"
-  hypr_focus_monitor "$OTP_OUTPUT"
+  # Pick the name before creating anything, so the cleanup on exit knows which
+  # screen to remove even when it never comes up.
+  OTP_ACTIVE_OUTPUT=$(hypr_pick_output_name "$OTP_OUTPUT") ||
+    die "no free name left for the virtual screen; log out and back in to clear the leftovers"
+  [[ $OTP_ACTIVE_OUTPUT == "$OTP_OUTPUT" ]] ||
+    warn "$OTP_OUTPUT is a disabled leftover and cannot be reused, photographing on $OTP_ACTIVE_OUTPUT instead"
+  hypr_create_output "$OTP_ACTIVE_OUTPUT" "$OTP_WIDTH" "$OTP_HEIGHT" "$OTP_SCALE"
+  hypr_focus_monitor "$OTP_ACTIVE_OUTPUT"
   hypr_focus_workspace "$OTP_WS"
   sleep 0.5
   local ws_mon; ws_mon=$(hypr_json activeworkspace | jq -r '.monitor')
-  [[ $ws_mon == "$OTP_OUTPUT" ]] || die "workspace $OTP_WS ended up on $ws_mon instead of $OTP_OUTPUT"
+  [[ $ws_mon == "$OTP_ACTIVE_OUTPUT" ]] || die "workspace $OTP_WS ended up on $ws_mon instead of $OTP_ACTIVE_OUTPUT"
   # The shell puts its wallpaper and bar on the new screen a moment later;
   # give it time to do so (and a little more to actually paint) before the
   # first capture, or the desktop scene is a black frame.
-  hypr_wait_layer omarchy-background "$OTP_OUTPUT" 8 || warn "no wallpaper layer on $OTP_OUTPUT after 8 s"
-  hypr_wait_layer omarchy-bar "$OTP_OUTPUT" 8 || warn "no bar on $OTP_OUTPUT after 8 s"
+  hypr_wait_layer omarchy-background "$OTP_ACTIVE_OUTPUT" 8 || warn "no wallpaper layer on $OTP_ACTIVE_OUTPUT after 8 s"
+  hypr_wait_layer omarchy-bar "$OTP_ACTIVE_OUTPUT" 8 || warn "no bar on $OTP_ACTIVE_OUTPUT after 8 s"
   # Nothing from before may be on screen: no toast from an earlier run.
   omarchy-shell -q notifications dismissAll >/dev/null 2>&1 || true
   sleep 1
-  info "virtual screen $OTP_OUTPUT (${OTP_WIDTH}x${OTP_HEIGHT} @ ${OTP_SCALE}x), workspace $OTP_WS"
+  info "virtual screen $OTP_ACTIVE_OUTPUT (${OTP_WIDTH}x${OTP_HEIGHT} @ ${OTP_SCALE}x), workspace $OTP_WS"
 }
 
 otp_session_end() {
@@ -48,8 +57,11 @@ otp_session_end() {
   otp_scene_cleanup
   [[ -n ${OTP_ORIG_MON:-} ]] && hypr_focus_monitor "$OTP_ORIG_MON" >/dev/null 2>&1
   [[ -n ${OTP_ORIG_WS:-} ]] && hypr_focus_workspace "$OTP_ORIG_WS" >/dev/null 2>&1
-  hypr_remove_output "$OTP_OUTPUT" ||
-    warn "could not remove the virtual screen $OTP_OUTPUT; Hyprland keeps it disabled and out of the way until you restart it"
+  if [[ -n $OTP_ACTIVE_OUTPUT ]]; then
+    hypr_remove_output "$OTP_ACTIVE_OUTPUT" ||
+      warn "could not remove the virtual screen $OTP_ACTIVE_OUTPUT; Hyprland keeps it disabled and out of the way until you restart it"
+    OTP_ACTIVE_OUTPUT=""
+  fi
   local restore=()
   [[ -n ${OTP_ORIG_ANIM:-} ]] && restore+=("animations = { enabled = $OTP_ORIG_ANIM }")
   restore+=("cursor = { inactive_timeout = ${OTP_ORIG_CURSOR_TIMEOUT:-0}, no_hardware_cursors = ${OTP_ORIG_HW_CURSORS:-2} }")
@@ -62,7 +74,7 @@ otp_scene_cleanup() {
   omarchy-menu close >/dev/null 2>&1 || true
   omarchy-shell -q lock hidePreview >/dev/null 2>&1 || true
   hypr_close_workspace_windows
-  hypr_focus_monitor "$OTP_OUTPUT" >/dev/null 2>&1 || true
+  hypr_focus_monitor "$OTP_ACTIVE_OUTPUT" >/dev/null 2>&1 || true
   hypr_focus_workspace "$OTP_WS" >/dev/null 2>&1 || true
 }
 
@@ -124,9 +136,8 @@ otp_frame_is_flat() {
   awk -v sd="$sd" 'BEGIN { exit !(sd < 0.003) }'
 }
 
-# grim cannot capture a screen that is no longer enabled. That is what a monitor
-# manager does to our virtual screen when it decides the screen is not part of
-# the layout it knows, and it is worth saying so once instead of eleven times.
+# grim cannot capture a screen that is no longer enabled, which is what a
+# monitor manager does to it. Worth saying once rather than once per scene.
 otp_capture_failed() {
   local scene="$1" mon="$2"
   warn "grim failed for $scene"
@@ -139,7 +150,7 @@ otp_capture_failed() {
 
 # otp_capture SCENE [MONITOR]
 otp_capture() {
-  local scene="$1" mon="${2:-$OTP_OUTPUT}" png
+  local scene="$1" mon="${2:-$OTP_ACTIVE_OUTPUT}" png
   png="$OTP_THEME_OUT/$scene.png"
   grim -o "$mon" "$png" || { otp_capture_failed "$scene" "$mon"; return 1; }
   if otp_frame_is_flat "$png"; then
@@ -241,7 +252,7 @@ scene_hero() {
 
 scene_menu() {
   omarchy-menu summon root >/dev/null 2>&1 || { warn "could not open the Omarchy menu"; return 1; }
-  hypr_wait_layer omarchy-menu "$OTP_OUTPUT" 8 || { warn "menu did not appear on $OTP_OUTPUT"; return 1; }
+  hypr_wait_layer omarchy-menu "$OTP_ACTIVE_OUTPUT" 8 || { warn "menu did not appear on $OTP_ACTIVE_OUTPUT"; return 1; }
   otp_settle 1.5
   otp_capture menu
   omarchy-menu close >/dev/null 2>&1 || true
@@ -249,7 +260,7 @@ scene_menu() {
 
 scene_apps() {
   omarchy-menu summon apps >/dev/null 2>&1 || { warn "could not open the app launcher"; return 1; }
-  hypr_wait_layer omarchy-menu "$OTP_OUTPUT" 8 || { warn "launcher did not appear on $OTP_OUTPUT"; return 1; }
+  hypr_wait_layer omarchy-menu "$OTP_ACTIVE_OUTPUT" 8 || { warn "launcher did not appear on $OTP_ACTIVE_OUTPUT"; return 1; }
   otp_settle 2
   otp_capture apps
   omarchy-menu close >/dev/null 2>&1 || true
@@ -276,7 +287,7 @@ scene_lock() {
   mon=$(hypr_wait_layer_any omarchy-lock-preview 6) || { warn "lock preview did not appear"; omarchy-shell -q lock hidePreview; return 1; }
   otp_settle 2
   otp_capture lock "$mon"
-  [[ $mon == "$OTP_OUTPUT" ]] || { otp_note lock_monitor "$mon"; info "lock preview captured from $mon (a real screen)"; }
+  [[ $mon == "$OTP_ACTIVE_OUTPUT" ]] || { otp_note lock_monitor "$mon"; info "lock preview captured from $mon (a real screen)"; }
   omarchy-shell -q lock hidePreview >/dev/null 2>&1 || true
 }
 
