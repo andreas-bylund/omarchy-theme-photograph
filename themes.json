@@ -4,8 +4,8 @@
     "https://omarchy.org/themes",
     "https://andreas-bylund.github.io/omarchy-theme-registry/index.json"
   ],
-  "generated_at": "2026-09-03T16:19:17Z",
-  "count": 358,
+  "generated_at": "2026-09-25T07:32:55Z",
+  "count": 402,
   "themes": [
     {
       "name": "Catppuccin",
@@ -272,6 +272,14 @@
       "source": "registry"
     },
     {
+      "name": "Amber Console",
+      "slug": "amber-console",
+      "repo": "https://github.com/zigmoo/omarchy-amber-console-theme",
+      "install_name": "amber-console",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Amberbyte",
       "slug": "amberbyte",
       "repo": "https://github.com/tahfizhabib/omarchy-amberbyte-theme",
@@ -324,6 +332,14 @@
       "slug": "apocalypse",
       "repo": "https://github.com/atif-1402/omarchy-apocalypse-theme",
       "install_name": "apocalypse",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Apple Glass",
+      "slug": "apple-glass",
+      "repo": "https://github.com/macarchy/apple-glass",
+      "install_name": "apple-glass",
       "stock": false,
       "source": "registry"
     },
@@ -448,6 +464,14 @@
       "source": "registry"
     },
     {
+      "name": "Autumn",
+      "slug": "autumn",
+      "repo": "https://github.com/SirJul1337/omarchy-autumn-theme",
+      "install_name": "autumn",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Awakening",
       "slug": "awakening",
       "repo": "https://github.com/OldJobobo/omarchy-awakening-theme",
@@ -504,6 +528,14 @@
       "source": "registry"
     },
     {
+      "name": "Banish",
+      "slug": "banish",
+      "repo": "https://github.com/HANCORE-linux/omarchy-banish-theme",
+      "install_name": "banish",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Batman",
       "slug": "batman",
       "repo": "https://github.com/OldJobobo/omarchy-batman-theme",
@@ -522,16 +554,25 @@
     {
       "name": "Bauhaus",
       "slug": "bauhaus",
-      "repo": "https://github.com/somerocketeer/omarchy-bauhaus-theme",
+      "repo": "https://github.com/mwaltzer/omarchy-bauhaus-theme",
       "install_name": "bauhaus",
       "stock": false,
-      "source": "omarchy.org"
+      "source": "omarchy.org",
+      "renamed_from": "https://github.com/somerocketeer/omarchy-bauhaus-theme"
     },
     {
       "name": "Beachvan",
       "slug": "beachvan",
       "repo": "https://github.com/haripako/omarchy-BeachVan-theme",
       "install_name": "beachvan",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Beta",
+      "slug": "beta",
+      "repo": "https://github.com/JJDizz1L/beta",
+      "install_name": "beta",
       "stock": false,
       "source": "registry"
     },
@@ -592,6 +633,30 @@
       "source": "registry"
     },
     {
+      "name": "Blacula",
+      "slug": "blacula",
+      "repo": "https://github.com/OldJobobo/omarchy-blacula-theme",
+      "install_name": "blacula",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Blue Hour",
+      "slug": "blue-hour",
+      "repo": "https://github.com/ejuro/omarchy-blue-hour-theme",
+      "install_name": "blue-hour",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Blue Mosaic",
+      "slug": "blue-mosaic",
+      "repo": "https://github.com/ejuro/omarchy-blue-mosaic-theme",
+      "install_name": "blue-mosaic",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Blue Ridge Dark",
       "slug": "blue-ridge-dark",
       "repo": "https://github.com/hipsterusername/omarchy-blueridge-dark-theme",
@@ -624,6 +689,14 @@
       "source": "registry"
     },
     {
+      "name": "Bridge",
+      "slug": "bridge",
+      "repo": "https://github.com/fross100/omarchy-bridge-theme",
+      "install_name": "bridge",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Brutalism",
       "slug": "brutalism",
       "repo": "https://github.com/bjornramberg/omarchy-brutalism-theme",
@@ -644,6 +717,22 @@
       "slug": "c64",
       "repo": "https://github.com/scar45/omarchy-c64-theme",
       "install_name": "c64",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Camelot",
+      "slug": "camelot",
+      "repo": "https://github.com/csfh/omarchy-camelot-theme",
+      "install_name": "camelot",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Carbonfox",
+      "slug": "carbonfox",
+      "repo": "https://github.com/gchmel/carbonfox",
+      "install_name": "carbonfox",
       "stock": false,
       "source": "registry"
     },
@@ -678,6 +767,14 @@
       "install_name": "catppuccin-dark",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Celestial",
+      "slug": "celestial",
+      "repo": "https://github.com/dioannou30/omarchy-celestial-theme",
+      "install_name": "celestial",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Cherry Noir",
@@ -726,6 +823,14 @@
       "install_name": "coffee",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Coffee Day",
+      "slug": "coffee-day",
+      "repo": "https://github.com/bjarneo/omarchy-coffee-day-theme",
+      "install_name": "coffee-day",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Coffee Latte",
@@ -792,6 +897,14 @@
       "source": "omarchy.org"
     },
     {
+      "name": "Cupertino Dark",
+      "slug": "cupertino-dark",
+      "repo": "https://github.com/jonnyace/omarchy-cupertino-dark-theme",
+      "install_name": "cupertino-dark",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Cyber Aura",
       "slug": "cyber-aura",
       "repo": "https://github.com/joaovic-tech/omarchy-cyber-aura-theme",
@@ -826,18 +939,20 @@
     {
       "name": "Dazzle Dawn",
       "slug": "dazzle-dawn",
-      "repo": "https://github.com/modoterra/omarchy-dazzle-dawn-theme",
+      "repo": "https://github.com/csfh/omarchy-dazzle-dawn-theme",
       "install_name": "dazzle-dawn",
       "stock": false,
-      "source": "registry"
+      "source": "registry",
+      "renamed_from": "https://github.com/modoterra/omarchy-dazzle-dawn-theme"
     },
     {
       "name": "Dazzle Dusk",
       "slug": "dazzle-dusk",
-      "repo": "https://github.com/modoterra/omarchy-dazzle-dusk-theme",
+      "repo": "https://github.com/csfh/omarchy-dazzle-dusk-theme",
       "install_name": "dazzle-dusk",
       "stock": false,
-      "source": "registry"
+      "source": "registry",
+      "renamed_from": "https://github.com/modoterra/omarchy-dazzle-dusk-theme"
     },
     {
       "name": "Deadspace",
@@ -864,6 +979,22 @@
       "source": "registry"
     },
     {
+      "name": "Delta Dark",
+      "slug": "delta-dark",
+      "repo": "https://github.com/AlexZeitler/omarchy-delta-dark-theme",
+      "install_name": "delta-dark",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Delta Light",
+      "slug": "delta-light",
+      "repo": "https://github.com/AlexZeitler/omarchy-delta-light-theme",
+      "install_name": "delta-light",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Demon",
       "slug": "demon",
       "repo": "https://github.com/HANCORE-linux/omarchy-demon-theme",
@@ -876,6 +1007,14 @@
       "slug": "diablo-dreams",
       "repo": "https://github.com/dhh/omarchy-diablo-dreams-theme",
       "install_name": "diablo-dreams",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Discovery One",
+      "slug": "discovery-one",
+      "repo": "https://github.com/Devis99/omarchy-discovery-one-theme",
+      "install_name": "discovery-one",
       "stock": false,
       "source": "registry"
     },
@@ -918,6 +1057,14 @@
       "install_name": "dracula",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Dracula Reborn",
+      "slug": "dracula-reborn",
+      "repo": "https://github.com/OldJobobo/omarchy-dracula-reborn-theme",
+      "install_name": "dracula-reborn",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Dreamwave",
@@ -1104,6 +1251,14 @@
       "source": "registry"
     },
     {
+      "name": "Firmitas Utilitas Venustas",
+      "slug": "firmitas-utilitas-venustas",
+      "repo": "https://github.com/OldJobobo/omarchy-firmitas-utilitas-venustas-theme",
+      "install_name": "firmitas-utilitas-venustas",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Fish Material",
       "slug": "fish-material",
       "repo": "https://github.com/Eidan78/omarchy-fish-material-theme",
@@ -1152,6 +1307,14 @@
       "source": "omarchy.org"
     },
     {
+      "name": "Forest Night",
+      "slug": "forest-night",
+      "repo": "https://github.com/ForrestKnight/omarchy-forest-night-theme",
+      "install_name": "forest-night",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Frieren",
       "slug": "frieren",
       "repo": "https://github.com/arthurr-jpg/omarchy-frieren-theme",
@@ -1166,14 +1329,6 @@
       "install_name": "frost",
       "stock": false,
       "source": "omarchy.org"
-    },
-    {
-      "name": "Frutiger Aero",
-      "slug": "frutiger-aero",
-      "repo": "https://github.com/VECTORG99/omarchy-frutiger-aero",
-      "install_name": "frutiger-aero",
-      "stock": false,
-      "source": "registry"
     },
     {
       "name": "fuchsblau",
@@ -1270,6 +1425,14 @@
       "install_name": "green-garden",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Green Mosaic",
+      "slug": "green-mosaic",
+      "repo": "https://github.com/ejuro/omarchy-green-mosaic-theme",
+      "install_name": "green-mosaic",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Grimdark Solarized",
@@ -1416,6 +1579,14 @@
       "source": "omarchy.org"
     },
     {
+      "name": "Jarvis",
+      "slug": "jarvis",
+      "repo": "https://github.com/28labsnz/omarchy-jarvis-theme",
+      "install_name": "jarvis",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Kanagawa Dragon",
       "slug": "kanagawa-dragon",
       "repo": "https://github.com/bjarneo/omarchy-kanagawa-dragon-theme",
@@ -1510,6 +1681,14 @@
       "install_name": "lamplight",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Laravel",
+      "slug": "laravel",
+      "repo": "https://github.com/nunomaduro/omarchy-laravel-theme",
+      "install_name": "laravel",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Last Call",
@@ -1672,6 +1851,14 @@
       "source": "registry"
     },
     {
+      "name": "Middle Earth",
+      "slug": "middle-earth",
+      "repo": "https://github.com/LioHeimberg/omarchy-middle-earth-theme",
+      "install_name": "middle-earth",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Midnight",
       "slug": "midnight",
       "repo": "https://github.com/JaxonWright/omarchy-midnight-theme",
@@ -1768,12 +1955,21 @@
       "source": "registry"
     },
     {
+      "name": "Motherboard",
+      "slug": "motherboard",
+      "repo": "https://github.com/phoscoder/omarchy-motherboard-theme",
+      "install_name": "motherboard",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Nagai Poolside",
       "slug": "nagai-poolside",
-      "repo": "https://github.com/somerocketeer/omarchy-nagai-poolside-theme",
+      "repo": "https://github.com/mwaltzer/omarchy-nagai-poolside-theme",
       "install_name": "nagai-poolside",
       "stock": false,
-      "source": "omarchy.org"
+      "source": "omarchy.org",
+      "renamed_from": "https://github.com/somerocketeer/omarchy-nagai-poolside-theme"
     },
     {
       "name": "Nagai Twilight",
@@ -1814,6 +2010,14 @@
       "install_name": "neon-dusk",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Neon Glow",
+      "slug": "neon-glow",
+      "repo": "https://github.com/ejuro/omarchy-neon-glow-theme",
+      "install_name": "neon-glow",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Neonstreet",
@@ -1984,6 +2188,14 @@
       "source": "registry"
     },
     {
+      "name": "Omarchy Nier",
+      "slug": "omarchy-nier",
+      "repo": "https://github.com/krish561/Omarchy-nier-theme",
+      "install_name": "omarchy-nier",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Omarchy Nous Research Purple",
       "slug": "omarchy-nous-research-purple",
       "repo": "https://github.com/notkisk/Omarchy-nous-research-purple",
@@ -2000,10 +2212,27 @@
       "source": "registry"
     },
     {
+      "name": "Omarchy Things",
+      "slug": "omarchy-things",
+      "repo": "https://github.com/itsMattGuenther/omarchy-omarchy-things-theme",
+      "install_name": "omarchy-things",
+      "stock": false,
+      "source": "registry",
+      "renamed_from": "https://github.com/matthewguenther/omarchy-omarchy-things-theme"
+    },
+    {
       "name": "Omarchy95",
       "slug": "omarchy95",
       "repo": "https://github.com/atif-1402/omarchy-omarchy95-theme",
       "install_name": "omarchy95",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Omatrix",
+      "slug": "omatrix",
+      "repo": "https://github.com/0x1ocean/omarchy-omatrix-theme",
+      "install_name": "omatrix",
       "stock": false,
       "source": "registry"
     },
@@ -2022,6 +2251,22 @@
       "install_name": "one-dark-pro",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Orange Planet",
+      "slug": "orange-planet",
+      "repo": "https://github.com/NachoRodriguezM/omarchy-orange-planet-theme",
+      "install_name": "orange-planet",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Outpost",
+      "slug": "outpost",
+      "repo": "https://github.com/simoz/omarchy-outpost-theme",
+      "install_name": "outpost",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Oxford",
@@ -2068,6 +2313,14 @@
       "slug": "phosphor-os",
       "repo": "https://github.com/OldJobobo/omarchy-phosphor-os-theme",
       "install_name": "phosphor-os",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Pierre Dark",
+      "slug": "pierre-dark",
+      "repo": "https://github.com/DouglasdeMoura/omarchy-pierre-dark-theme",
+      "install_name": "pierre-dark",
       "stock": false,
       "source": "registry"
     },
@@ -2124,6 +2377,14 @@
       "slug": "porsche-911",
       "repo": "https://github.com/huacnlee/omarchy-porsche-911-theme",
       "install_name": "porsche-911",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Pripyat",
+      "slug": "pripyat",
+      "repo": "https://github.com/nibra180/omarchy-pripyat-theme",
+      "install_name": "pripyat",
       "stock": false,
       "source": "registry"
     },
@@ -2192,6 +2453,14 @@
       "source": "registry"
     },
     {
+      "name": "Quattrocento",
+      "slug": "quattrocento",
+      "repo": "https://github.com/r-bart/omarchy-quattrocento-theme",
+      "install_name": "quattrocento",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Quattrocento Light",
       "slug": "quattrocento-light",
       "repo": "https://github.com/r-bart/omarchy-quattrocento-light-theme",
@@ -2226,10 +2495,11 @@
     {
       "name": "Red Monarch",
       "slug": "red-monarch",
-      "repo": "https://github.com/kamatealif/omarchy-red-monarch-theme",
+      "repo": "https://github.com/kamatealip/omarchy-red-monarch-theme",
       "install_name": "red-monarch",
       "stock": false,
-      "source": "omarchy.org"
+      "source": "omarchy.org",
+      "renamed_from": "https://github.com/kamatealif/omarchy-red-monarch-theme"
     },
     {
       "name": "Red Pill",
@@ -2352,12 +2622,28 @@
       "source": "omarchy.org"
     },
     {
+      "name": "Sakurazuki",
+      "slug": "sakurazuki",
+      "repo": "https://github.com/ahmed-z0/omarchy-sakurazuki-theme",
+      "install_name": "sakurazuki",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Sapphire",
       "slug": "sapphire",
       "repo": "https://github.com/HANCORE-linux/omarchy-sapphire-theme",
       "install_name": "sapphire",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Scanner Darkly",
+      "slug": "scanner-darkly",
+      "repo": "https://github.com/craigderington/omarchy-scanner-darkly-theme",
+      "install_name": "scanner-darkly",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Scooby Doo",
@@ -2390,6 +2676,22 @@
       "install_name": "shadesofjade",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Shinsekai",
+      "slug": "shinsekai",
+      "repo": "https://github.com/Madhukumar511/omarchy-shinsekai-theme",
+      "install_name": "shinsekai",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Signature",
+      "slug": "signature",
+      "repo": "https://github.com/mshareef-git/omarchy-signature-theme",
+      "install_name": "signature",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Snow",
@@ -2430,6 +2732,14 @@
       "install_name": "solarized",
       "stock": false,
       "source": "omarchy.org"
+    },
+    {
+      "name": "Solarized Japan",
+      "slug": "solarized-japan",
+      "repo": "https://github.com/R7rainz/omarchy-solarized-japan",
+      "install_name": "solarized-japan",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Solarized Light",
@@ -2488,6 +2798,22 @@
       "source": "registry"
     },
     {
+      "name": "Spring",
+      "slug": "spring",
+      "repo": "https://github.com/SirJul1337/omarchy-spring-theme",
+      "install_name": "spring",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Starcraft",
+      "slug": "starcraft",
+      "repo": "https://github.com/bjarneo/omarchy-starcraft-theme",
+      "install_name": "starcraft",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Stardew",
       "slug": "stardew",
       "repo": "https://github.com/imbypass/omarchy-stardew-theme",
@@ -2536,6 +2862,14 @@
       "source": "registry"
     },
     {
+      "name": "Stormtrooper",
+      "slug": "stormtrooper",
+      "repo": "https://github.com/techaeris/omarchy-stormtrooper-theme",
+      "install_name": "stormtrooper",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Sunkissed",
       "slug": "sunkissed",
       "repo": "https://github.com/loeclos/omarchy-sunkissed-theme",
@@ -2568,20 +2902,29 @@
       "source": "omarchy.org"
     },
     {
-      "name": "Sword Art Omarchy",
-      "slug": "sword-art-omarchy",
-      "repo": "https://github.com/KitsuneSemCalda/Sword-Art-Omarchy",
-      "install_name": "sword-art-omarchy",
+      "name": "Sword Art",
+      "slug": "sword-art",
+      "repo": "https://github.com/KitsuneSemCalda/omarchy-sword-art-theme",
+      "install_name": "sword-art",
       "stock": false,
       "source": "registry"
     },
     {
       "name": "Synthwave '84",
       "slug": "synthwave-84",
-      "repo": "https://github.com/omacom-io/omarchy-synthwave84-theme/",
+      "repo": "https://github.com/omacom/omarchy-synthwave84-theme",
       "install_name": "synthwave84",
       "stock": false,
-      "source": "omarchy.org"
+      "source": "omarchy.org",
+      "renamed_from": "https://github.com/omacom-io/omarchy-synthwave84-theme/"
+    },
+    {
+      "name": "Tan Desert",
+      "slug": "tan-desert",
+      "repo": "https://github.com/sjwasko/omarchy-tan-desert-theme",
+      "install_name": "tan-desert",
+      "stock": false,
+      "source": "registry"
     },
     {
       "name": "Temerald",
@@ -2648,6 +2991,14 @@
       "source": "registry"
     },
     {
+      "name": "Thunderstruck",
+      "slug": "thunderstruck",
+      "repo": "https://github.com/ejuro/omarchy-thunderstruck-theme",
+      "install_name": "thunderstruck",
+      "stock": false,
+      "source": "registry"
+    },
+    {
       "name": "Tokyo Night OLED",
       "slug": "tokyo-night-oled",
       "repo": "https://github.com/Justin-De-Sio/omarchy-tokyoled-theme",
@@ -2660,6 +3011,14 @@
       "slug": "tranquility",
       "repo": "https://github.com/omarchy-themes/omarchy-tranquility-theme",
       "install_name": "tranquility",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Turbo Pascal",
+      "slug": "turbo-pascal",
+      "repo": "https://github.com/AlexZeitler/omarchy-turbo-pascal-theme",
+      "install_name": "turbo-pascal",
       "stock": false,
       "source": "registry"
     },
@@ -2738,18 +3097,11 @@
     {
       "name": "Venice from Above",
       "slug": "venice-from-above",
-      "repo": "https://github.com/mattbbia/venice-from-above-omarchy",
-      "install_name": "venice-from-above-omarchy",
-      "stock": false,
-      "source": "omarchy.org"
-    },
-    {
-      "name": "Venice From Above",
-      "slug": "venice-from-above",
       "repo": "https://github.com/mattbbia/venice-from-above",
       "install_name": "venice-from-above",
       "stock": false,
-      "source": "registry"
+      "source": "omarchy.org",
+      "renamed_from": "https://github.com/mattbbia/venice-from-above-omarchy"
     },
     {
       "name": "Vernier",
@@ -2780,6 +3132,14 @@
       "slug": "vice-city",
       "repo": "https://github.com/lavarinimoreira/omarchy-vice-city-theme",
       "install_name": "vice-city",
+      "stock": false,
+      "source": "registry"
+    },
+    {
+      "name": "Vikings",
+      "slug": "vikings",
+      "repo": "https://github.com/csfh/omarchy-vikings-theme",
+      "install_name": "vikings",
       "stock": false,
       "source": "registry"
     },
