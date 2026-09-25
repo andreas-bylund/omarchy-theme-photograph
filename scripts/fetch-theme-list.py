@@ -121,22 +121,40 @@ def fetch(url: str) -> str:
     return urllib.request.urlopen(req, timeout=30).read().decode("utf-8")
 
 
+def _site_theme(name, slug, repo):
+    return {
+        "name": name,
+        "slug": slug,
+        "repo": repo,
+        "install_name": theme_name_from_repo(repo),
+        "stock": False,
+        "source": "omarchy.org",
+    }
+
+
 def parse_site(src: str):
     themes = []
+    # Current omarchy.org/themes: a grid of <li><a href=repo><img .../><span>Name</span>
+    for m in re.finditer(
+        r'<a href="([^"]+)"[^>]*>\s*'
+        r'<img src="/assets/themes/([^"]+)\.webp"[^>]*>\s*'
+        r'<span[^>]*>([^<]+)</span>',
+        src,
+        re.S,
+    ):
+        repo, slug, caption = m.group(1), m.group(2), m.group(3)
+        themes.append(_site_theme(html.unescape(caption.strip()), slug, repo))
+    if themes:
+        return themes
+
+    # Older markup used <figure class="themes__theme">
     for fig in re.findall(r'<figure class="themes__theme[^"]*">(.*?)</figure>', src, re.S):
         m = re.search(r'<a href="([^"]+)"><img src="/assets/themes/([^"]+)\.webp"', fig)
         c = re.search(r"<figcaption><a href=\"[^\"]+\">([^<]+)</a>", fig)
         if not m:
             continue
         repo, slug = m.group(1), m.group(2)
-        themes.append({
-            "name": html.unescape(c.group(1)) if c else title_case(slug),
-            "slug": slug,
-            "repo": repo,
-            "install_name": theme_name_from_repo(repo),
-            "stock": False,
-            "source": "omarchy.org",
-        })
+        themes.append(_site_theme(html.unescape(c.group(1)) if c else title_case(slug), slug, repo))
     return themes
 
 

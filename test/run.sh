@@ -150,6 +150,11 @@ assert_eq "list: install name" "$(jq -r '.themes[0].install_name' "$TMP/themes.j
 assert_eq "list: html entities" "$(jq -r '.themes[0].name' "$TMP/themes.json")" 'Aetheria & Co'
 assert_eq "list: sorted by name" "$(jq -r '[.themes[].name] | join(",")' "$TMP/themes.json")" 'Aetheria & Co,Rustleaf'
 
+python3 "$ROOT/scripts/fetch-theme-list.py" --from "$FIXTURES/themes-page-grid.html" --no-stock --out "$TMP/themes-grid.json" >/dev/null
+assert_eq "list grid: count" "$(jq '.count' "$TMP/themes-grid.json")" 2
+assert_eq "list grid: html entities" "$(jq -r '.themes[0].name' "$TMP/themes-grid.json")" 'Aetheria & Co'
+assert_eq "list grid: sorted by name" "$(jq -r '[.themes[].name] | join(",")' "$TMP/themes-grid.json")" 'Aetheria & Co,Rustleaf'
+
 # --- Palette sheet ---
 if otp_have magick; then
   if render_palette "$FIXTURES/colors.toml" "$TMP/palette.png" && [[ -f $TMP/palette.png ]]; then
